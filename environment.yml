@@ -1,0 +1,20 @@
+# Environment name
+name: rul_unc
+
+# Conda channels
+channels:
+  - conda-forge
+  - defaults
+
+# Python dependencies
+dependencies:
+  - python = 3.10
+  - keras
+  - funcy 
+  - pandas 
+  - scipy 
+  - scikit-learn 
+  - tqdm 
+  - pip:
+    - tensorflow 
+
