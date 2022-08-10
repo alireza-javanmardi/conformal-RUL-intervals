@@ -15,6 +15,8 @@ dependencies:
   - scipy 
   - scikit-learn 
   - tqdm 
+  - pip
+  - matplotlib
   - pip:
     - tensorflow 
 

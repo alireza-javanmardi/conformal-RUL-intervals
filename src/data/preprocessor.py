@@ -83,14 +83,15 @@ def dataframe_to_supervised(
     X_list, y_list = [], []
     for id in df.id.unique():
         id_df = df[df.id == id]
-        X  = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan).astype(np.float32).values
-        X_reshaped = np.reshape(X, (X.shape[0], n_in+1, X.shape[1]/(n_in+1)))
-        print(X_reshaped.shape)
-        X_list.append(X_reshaped)
-
-        rul = id_df["rul"].astype(np.float32).values
+        # X  = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan).astype(np.float32).values
+        # X_reshaped = np.reshape(X, (X.shape[0], n_in+1, X.shape[1]/(n_in+1)))
+        # print(X_reshaped.shape)
+        # X_list.append(X_reshaped)
+        X = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan).astype(np.float32).values
+        X_list.append(X.reshape(X.shape[0], n_in+1, X.shape[1]//(n_in+1), 1))
+        rul = id_df["rul"].astype(np.float32).values.reshape(-1,1)
         #piecewise RUL definition
-        #rul[rul>130] = 130
+        rul[rul>130] = 130
         y_list.append(rul[n_in:])
 
     return X_list, y_list
