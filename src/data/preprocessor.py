@@ -91,7 +91,7 @@ def dataframe_to_supervised(
         X_list.append(X.reshape(X.shape[0], n_in+1, X.shape[1]//(n_in+1), 1))
         rul = id_df["rul"].astype(np.float32).values.reshape(-1,1)
         #piecewise RUL definition
-        rul[rul>130] = 130
+        rul[rul>125] = 125
         y_list.append(rul[n_in:])
 
     return X_list, y_list
