@@ -1,9 +1,10 @@
 import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 
 class KMeansScaler:
-    def __init__(self, k: int, kmeans_features, base_scaler=StandardScaler):
+    """A scaler that scale data based on the cluster they belong to 
+    """
+    def __init__(self, k: int, kmeans_features, base_scaler):
         self.k = k
         self.kmeans_features = kmeans_features
         self.kmeans_model = None
@@ -12,7 +13,7 @@ class KMeansScaler:
         self.scalers = []
 
         for _ in range(k):
-            self.scalers.append(base_scaler())
+            self.scalers.append(base_scaler)
 
     def fit(self, df: pd.DataFrame):
         kmeans = KMeans(n_clusters=self.k, random_state=0)
