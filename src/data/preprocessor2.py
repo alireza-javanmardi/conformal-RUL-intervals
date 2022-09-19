@@ -1,6 +1,4 @@
-from pandas.core.window.rolling import Window
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split, GroupShuffleSplit
+from sklearn.model_selection import GroupShuffleSplit
 import numpy as np
 import pandas as pd
 
@@ -12,19 +10,17 @@ def split_dataset(dataset, calval_size=0.2, random_state=None):
         calval_size (float, optional):  the proportion of the dataset to include in the test split. Defaults to 0.2.
 
     Returns:
-        a dictionary containing train-calval split df, calval id's, train df, and test df. 
+        a dictionary containing train, calval, and test dfs. 
     """
     train_df = dataset["train"]
     test_df = dataset["test"]
 
     train_idx, calval_idx = split_by_group(X=train_df, groups=train_df["id"], n_splits=1, test_size=calval_size, random_state=random_state)
-    train , calval = train_df.loc[train_idx], train_df.loc[calval_idx]
-    train_split = dict(train=train, test=calval)
+    train_df , calval_df = train_df.loc[train_idx], train_df.loc[calval_idx]
 
     return {
-        **dataset,
-        "train_split": train_split,
         "train": train_df,
+        "calval": calval_df,
         "test": test_df
     }
 
@@ -49,32 +45,34 @@ def split_by_group(X, groups, n_splits=1, test_size=0.2, random_state=None):
 def preprocess_split(
     split, scaler_factory, window_size,
     removable_cols: list[str] = [], 
-    ignore_columns: list[str] = [],
-    **kwargs):
-    """preprocess a train-calval split: first scale them, then convert them to supervise data
+    ignore_columns: list[str] = []):
+    """preprocess a train, calval, and test split: first scale them, then convert them to supervise data
 
     Args:
-        split : a dictionary containing train-calval split
+        split : a dictionary containing train, calval, and test splits.
         scaler_factory (_type_): scaler to be used for scaling
         removable_cols (list[str], optional): list of sensors to be removed. Defaults to [].
         ignore_columns (list[str], optional): list of data columns such as "time" and "id" to be ignored. Defaults to [].
 
     Returns:
-        a dictionary containing scaled train-calval split
+        a dictionary containing scaled train, calval, test dfs.
     """
     split_scaler = scaler_factory
     train = apply_scaling_fn(split_scaler.fit_transform, split["train"])
+    calval = apply_scaling_fn(split_scaler.transform, split["calval"])
     test = apply_scaling_fn(split_scaler.transform, split["test"])
     # removable_cols = list(train.columns[train.std(ddof=1) < 0.1e-10])
     removable_cols += ignore_columns
     train = train.drop(removable_cols, axis=1)
+    calval = calval.drop(removable_cols, axis=1)
     test = test.drop(removable_cols, axis=1)
     train = dataframe_to_supervised(train, n_in=window_size-1, n_out=1)
+    calval = dataframe_to_supervised(calval, n_in=window_size-1, n_out=1)
     test = dataframe_to_supervised(test, n_in=window_size-1, n_out=1)
 
     return {
-        **split,
         "train": train,
+        "calval" : calval,
         "test": test
     }
 
@@ -121,7 +119,7 @@ def dataframe_to_supervised(
         rul[rul>125] = 125
         y_list.append(rul[n_in:])
         id_list = id_list + X.shape[0]*[id]
-        idx_list.append(id_df_supervised.index.values) 
+        idx_list.append(np.arange(X.shape[0])) 
 
     return {"X": np.vstack(X_list),
             "y": np.vstack(y_list),
