@@ -2,7 +2,7 @@ import tensorflow as tf
 import src.data.datasets as data
 from sklearn.preprocessing import MinMaxScaler
 import src.data.preprocessor as pre
-import src.model.network as net 
+import model.CNN as net 
 import numpy as np
 from keras.optimizers import Adam
 from keras.losses import MeanSquaredError
