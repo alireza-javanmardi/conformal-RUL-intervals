@@ -1,75 +1,92 @@
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupShuffleSplit
 import numpy as np
 import pandas as pd
-import funcy as fy
-import typing
 
-import src.data.datasets as datasets
+def split_dataset(dataset, calval_size=0.2, random_state=None):
+    """split data into train and calibration+validation
 
-class Split(typing.TypedDict):
-    train: pd.DataFrame
-    test: pd.DataFrame
-class SplitDataset(datasets.Dataset):
-    train_splits: list[Split]
+    Args:
+        dataset: a dictionary containing train and test dataframes and their scaler. 
+        calval_size (float, optional):  the proportion of the dataset to include in the test split. Defaults to 0.2.
 
-def split_dataset(dataset: datasets.Dataset, folds=10) -> SplitDataset:
-    train_df: pd.DataFrame = dataset["train"]
-    test_df: pd.DataFrame = dataset["test"]
-    scaler_factory = dataset["scaler_factory"]
+    Returns:
+        a dictionary containing train, calval, and test dfs. 
+    """
+    train_df = dataset["train"]
+    test_df = dataset["test"]
 
-    max_train_id = train_df["id"].values.max()
-    folds = KFold(folds, shuffle=True, random_state=42).split(
-        np.arange(max_train_id + 1) + 1)
-
-    train_splits: list[Split] = []
-
-    for train_idxs, val_idxs in folds:
-        train = train_df[train_df["id"].isin(train_idxs)]
-        val = train_df[train_df["id"].isin(val_idxs)]
-        train_splits.append(dict(train=train, test=val))
+    train_idx, calval_idx = split_by_group(X=train_df, groups=train_df["id"], n_splits=1, test_size=calval_size, random_state=random_state)
+    train_df , calval_df = train_df.loc[train_idx], train_df.loc[calval_idx]
 
     return {
-        **dataset,
-        "train_splits": train_splits,
         "train": train_df,
+        "calval": calval_df,
         "test": test_df
     }
 
-def map_split_dataset(
-    f: typing.Callable, dataset: SplitDataset,
-    g: typing.Callable = lambda _: dict()) -> SplitDataset:
-    return {
-        **dataset,
-        **f(dataset, **g(dataset)),
-        "train_splits": fy.lmap(
-            lambda s: f(s, **g(dataset)),
-            dataset["train_splits"])
-    }
+def split_by_group(X, groups, n_splits=1, test_size=0.2, random_state=None):
+    """split data in a way that points with the same group be in the same split
+
+    Args:
+        X: Training data
+        groups: Group labels for the samples used while splitting the dataset into train/test set
+        n_splits (int, optional): Number of re-shuffling & splitting iterations. Defaults to 1.
+        test_size (float, optional): proportion of groups to include in the test split. Defaults to 0.2.
+        random_state (int, optional): Defaults to None.
+
+    Returns:
+        training and test indices.
+    """
+    gp_split = GroupShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=random_state)
+    train_idx, test_idx = next(gp_split.split(X, groups=groups))
+    return train_idx, test_idx
+
 
 def preprocess_split(
-    split: Split, scaler_factory: typing.Callable,
-    ignore_columns: list[str] = [],
-    **kwargs) -> Split:
-    split_scaler = scaler_factory()
+    split, scaler_factory, window_size,
+    removable_cols: list[str] = [], 
+    ignore_columns: list[str] = []):
+    """preprocess a train, calval, and test split: first scale them, then convert them to supervise data
+
+    Args:
+        split : a dictionary containing train, calval, and test splits.
+        scaler_factory (_type_): scaler to be used for scaling
+        removable_cols (list[str], optional): list of sensors to be removed. Defaults to [].
+        ignore_columns (list[str], optional): list of data columns such as "time" and "id" to be ignored. Defaults to [].
+
+    Returns:
+        a dictionary containing scaled train, calval, test dfs.
+    """
+    split_scaler = scaler_factory
     train = apply_scaling_fn(split_scaler.fit_transform, split["train"])
+    calval = apply_scaling_fn(split_scaler.transform, split["calval"])
     test = apply_scaling_fn(split_scaler.transform, split["test"])
-    removable_cols = list(train.columns[train.std(ddof=1) < 0.1e-10])
+    # removable_cols = list(train.columns[train.std(ddof=1) < 0.1e-10])
     removable_cols += ignore_columns
     train = train.drop(removable_cols, axis=1)
+    calval = calval.drop(removable_cols, axis=1)
     test = test.drop(removable_cols, axis=1)
-    train = dataframe_to_supervised(train)
-    test = dataframe_to_supervised(test)
+    train = dataframe_to_supervised(train, n_in=window_size-1, n_out=1)
+    calval = dataframe_to_supervised(calval, n_in=window_size-1, n_out=1)
+    test = dataframe_to_supervised(test, n_in=window_size-1, n_out=1)
 
     return {
-        **split,
         "train": train,
-        "test": test,
-        "in_dim": train[0][0].shape[-1]
+        "calval" : calval,
+        "test": test
     }
 
 
-def apply_scaling_fn(f: typing.Callable, df: pd.DataFrame) -> pd.DataFrame:
+def apply_scaling_fn(f, df: pd.DataFrame) -> pd.DataFrame:
+    """apply scaling on a df and return it without scaling id's and rul labels
+
+    Args:
+        f (a callable function): scaler function
+        df (pd.DataFrame): df to be scaled
+
+    Returns:
+        pd.DataFrame: scaled df
+    """
     pre_cols = ["id"]
     post_cols = ["rul"]
     cols = pre_cols + post_cols
@@ -79,24 +96,48 @@ def apply_scaling_fn(f: typing.Callable, df: pd.DataFrame) -> pd.DataFrame:
 
 
 def dataframe_to_supervised(
-    df: pd.DataFrame, n_in=29, n_out=1, dropnan=True) -> tuple[list[np.array], list[np.array]]:
-    X_list, y_list = [], []
+    df, n_in=29, n_out=1, dropnan=True):
+    """convert a dataframe of multiple time series into supervised dataframe using windowing technique
+
+    Args:
+        df (pd.DataFrame): input dataframe
+        n_in (int): number of past measurements in time to be considered, (t-n_in, ... t-1)
+        n_out (int): number of current and future measurements in time to be considered, (t, t+1, ... t+n_out)
+        dropnan (bool): wether to drop rows with NaN values
+
+    Returns:
+        a dictionary containing X's, y's, id's, and indexes
+    """
+    X_list, y_list, id_list, idx_list = [], [], [], []
     for id in df.id.unique():
         id_df = df[df.id == id]
-        # X  = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan).astype(np.float32).values
-        # X_reshaped = np.reshape(X, (X.shape[0], n_in+1, X.shape[1]/(n_in+1)))
-        # print(X_reshaped.shape)
-        # X_list.append(X_reshaped)
-        X = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan).astype(np.float32).values
-        X_list.append(X.reshape(X.shape[0], n_in+1, X.shape[1]//(n_in+1), 1))
+        id_df_supervised = series_to_supervised(id_df.drop(["id", "rul"], axis=1), n_in, n_out, dropnan)
+        X = id_df_supervised.astype(np.float32).values
+        X_list.append(X.reshape(X.shape[0], n_in+1, X.shape[1]//(n_in+1), 1)) # shape:(id_df.shape[0]-window_length+1, window_length, features)
         rul = id_df["rul"].astype(np.float32).values.reshape(-1,1)
-        #piecewise RUL definition
+        #piecewise RUL definition, comment it if you want linear RUL
         rul[rul>125] = 125
         y_list.append(rul[n_in:])
+        id_list = id_list + X.shape[0]*[id]
+        idx_list.append(np.arange(X.shape[0])) 
 
-    return X_list, y_list
+    return {"X": np.vstack(X_list),
+            "y": np.vstack(y_list),
+            "id": np.array(id_list),
+            "index": np.hstack(idx_list)}
 
 def series_to_supervised(df: pd.DataFrame, n_in: int, n_out: int, dropnan: bool):
+    """convert a single time series dataframe into supervised dataframe using windowing technique
+
+    Args:
+        df (pd.DataFrame): input dataframe
+        n_in (int): number of past measurements in time to be considered, (t-n_in, ... t-1)
+        n_out (int): number of current and future measurements in time to be considered, (t, t+1, ... t+n_out)
+        dropnan (bool): wether to drop rows with NaN values
+
+    Returns:
+        agg (pd.DataFrame): supervised dataframe with (n_in+n_out+1)*df.shape[1] coulmns
+    """
     n_vars = df.shape[1]
     cols, names = list(), list()
     # input sequence (t-n, ... t-1)
@@ -118,5 +159,3 @@ def series_to_supervised(df: pd.DataFrame, n_in: int, n_out: int, dropnan: bool)
         agg.dropna(inplace=True)
     return agg
 
-
-preprocess_split_dataset = fy.partial(map_split_dataset, preprocess_split, g=lambda d: d)

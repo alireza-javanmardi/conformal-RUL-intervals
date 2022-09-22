@@ -1,29 +1,30 @@
 import os
-import typing
 import pandas as pd
-import funcy as fy
-from sklearn.preprocessing import StandardScaler
 
 import src.data.utils as du
 
 CMAPSS_DIR = 'data\\CMAPSS'
-#a list containing all sensor labels
+
+#a list containing all sensor measurement labels, sm01 to sm21
 cmapss_sensor_list = []
 for i in range(21):
     cmapss_sensor_list.append(f"sm{i+1:02d}")
 
-#a list containing operating condition labels
+#a list containing operating setting labels
 cmapss_op_list = ["os1", "os2", "os3"]
 
-# CMAPSS1..4
+def get_dataset(name, scaler):
+    """get a dataset from cmapss datasets
 
-class Dataset(typing.TypedDict):
-    name: str
-    train: pd.DataFrame
-    test: pd.DataFrame
-    scaler_factory: typing.Callable
+    Args:
+        name (str): CMAPSS1 to CMAPSS4.
 
-def get_dataset(name: str) -> Dataset:
+    Raises:
+        Exception: if the name is wrong.
+
+    Returns:
+        Dataset: a dictionary containing train and test dataframes and their scaler. 
+    """
     if name.startswith("CMAPSS"):
         id = int(name[len("CMAPSS"):])
         train_adr = f"train_FD00{id}.txt"
@@ -32,44 +33,41 @@ def get_dataset(name: str) -> Dataset:
         train_df = cmapss_data_reader(train_adr)
         test_df = cmapss_data_reader(test_adr, rul_adr)
 
-        # if id in {1, 2}:
-        #     unwanted_sensors = {"SM01", "SM05", "SM10", "SM16", "SM18", "SM19"}
-        # else:
-        #     unwanted_sensors = {"SM01", "SM05", "SM16", "SM18", "SM19"}
-
         if id in {2, 4}:
-            scaler_factory = fy.partial(
-                du.KMeansScaler, 6, cmapss_op_list, StandardScaler)
+            scaler_factory = du.KMeansScaler(k=6, kmeans_features=cmapss_op_list, base_scaler=scaler)
+            if id==2:
+                window_size = 20
+            else:
+                window_size = 15
+
         else:
-            scaler_factory = StandardScaler
+            scaler_factory = scaler
+            window_size = 30
 
         return dict(
             name=name,
             train=train_df,
             test=test_df,
             scaler_factory=scaler_factory,
-            ignore_columns=cmapss_op_list)
+            ignore_columns=cmapss_op_list,
+            window_size=window_size)
     else:
         raise Exception(f"Unknown dataset {name}.")
 
 
-def cmapss_data_reader(data_adr: str, rul_adr: str = None) -> pd.DataFrame:
-    """
-    Parameters
-    ----------
-    data_adr : string
-        a sting such as "train_FD001.txt".
+def cmapss_data_reader(data_adr, rul_adr = None):
+    """read cmapss train or test set into a df
 
-    Returns
-    -------
-    data_df : pandas dataframe
-        dataframe corresponding to the provided address with meaningful column names.
+    Args:
+        data_adr (str): address of train or test set, e.g., train_FD001.txt for the first train set.
+        rul_adr (str, optional): address of rul labels for test set. Defaults to None.
 
+    Returns:
+        pd.DataFrame: pandas dataframe of a train or test set
     """
-    #data_adr is train_FD001.txt for the first training data
     data_folder = os.path.join(CMAPSS_DIR, data_adr)
     data_df = pd.read_csv(data_folder, header=None, delim_whitespace = True)
-    #preparing the data head for the data
+    #preparing the header for the data
     data_df.columns = ["id", "time", *cmapss_op_list, *cmapss_sensor_list]
     data_df = add_rul_to_df(data_df)
 
@@ -79,7 +77,15 @@ def cmapss_data_reader(data_adr: str, rul_adr: str = None) -> pd.DataFrame:
 
     return data_df
 
-def add_rul_to_df(df: pd.DataFrame) -> pd.DataFrame:
+def add_rul_to_df(df):
+    """add rul labels to df
+
+    Args:
+        df (pd.DataFrame): train or test df
+
+    Returns:
+        pd.DataFrame: same df with a new "rul" column
+    """
     ruls = df.groupby("id").time.transform('max') - df.time
     df["rul"] = ruls
     return df
