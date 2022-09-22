@@ -1,6 +1,6 @@
 __pycache__
 .venv
-saved_models
-result_figs
 environment.yml
 saved_models_without_ES
+saved_models
+result_figs
