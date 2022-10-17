@@ -1,7 +1,7 @@
 import tensorflow as tf
-from keras.layers import Flatten, Dense, Conv2D, Input, Dropout
-from keras.models import Model
-from keras.initializers import GlorotNormal
+from tensorflow.keras.layers import Flatten, Dense, Conv2D, Input, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.initializers import GlorotNormal
 
 
 
@@ -23,9 +23,9 @@ def create_DCNN(window_size, feature_dim, kernel_size, filter_num, dropout_rate)
     conv4 = Conv2D(filters=filter_num, kernel_size=kernel_size, padding='same', activation='tanh', kernel_initializer=GlorotNormal())(conv3)
     conv5 = Conv2D(filters=1, kernel_size=(3, 1), padding='same', activation='tanh', kernel_initializer=GlorotNormal())(conv4)
     flat = Flatten()(conv5)
-    drop = Dropout(dropout_rate)(flat)
-    hidden = Dense(100, activation='tanh')(drop)
-    outputs = Dense(1)(hidden)
+    drop = Dropout(rate=dropout_rate)(flat)
+    hidden = Dense(100, activation='tanh', kernel_initializer=GlorotNormal())(drop)
+    outputs = Dense(1, kernel_initializer=GlorotNormal())(hidden)
     model = Model(inputs=inputs, outputs=outputs)
 
     return model 
@@ -51,9 +51,9 @@ def create_MQDCNN(quantiles, window_size, feature_dim, kernel_size, filter_num, 
     conv4 = Conv2D(filters=filter_num, kernel_size=kernel_size, padding='same', activation='tanh', kernel_initializer=GlorotNormal())(conv3)
     conv5 = Conv2D(filters=1, kernel_size=(3, 1), padding='same', activation='tanh', kernel_initializer=GlorotNormal())(conv4)
     flat = Flatten()(conv5)
-    drop = Dropout(dropout_rate)(flat)
-    hidden = Dense(100, activation='tanh')(drop)
-    outputs = [Dense(1, name="q%d" % q_i)(hidden) for q_i in range(output_dim)]
+    drop = Dropout(rate=dropout_rate)(flat)
+    hidden = Dense(100, activation='tanh', kernel_initializer=GlorotNormal())(drop)
+    outputs = [Dense(1, kernel_initializer=GlorotNormal(), name="q%d" % q_i)(hidden) for q_i in range(output_dim)]
     model = Model(inputs=inputs, outputs=outputs)
 
     return model 

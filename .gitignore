@@ -1,6 +1,31 @@
-__pycache__
-.venv
+CNN
+GB
+old results RF
+CNN_test.py
 environment.yml
-saved_models_without_ES
-saved_models
-result_figs
+GB_test.ipynb
+playground.ipynb
+requirements.txt
+RF_experiment.py
+RF.ipynb
+RF_test.ipynb
+run_CNN_test.sh
+run_garden.sh
+run_GB.sh
+run_meta.sh
+run_meta_GB.sh
+run.sh
+run_RF.bat
+test.ipynb
+test2.ipynb
+test3 CMAPSS2.ipynb
+test3 CMAPSS3.ipynb
+test3 CMAPSS4.ipynb
+test3.ipynb
+violinplots_GB.py
+violinplots_RF.py
+violinplots.py
+
+
+
+

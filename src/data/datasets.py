@@ -3,7 +3,7 @@ import pandas as pd
 
 import src.data.utils as du
 
-CMAPSS_DIR = 'data\\CMAPSS'
+CMAPSS_DIR = os.path.join("data", "CMAPSS")
 
 #a list containing all sensor measurement labels, sm01 to sm21
 cmapss_sensor_list = []
@@ -35,6 +35,7 @@ def get_dataset(name, scaler):
 
         if id in {2, 4}:
             scaler_factory = du.KMeansScaler(k=6, kmeans_features=cmapss_op_list, base_scaler=scaler)
+            #scaler_factory = scaler
             if id==2:
                 window_size = 20
             else:

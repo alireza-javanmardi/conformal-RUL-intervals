@@ -2,25 +2,25 @@ from sklearn.model_selection import GroupShuffleSplit
 import numpy as np
 import pandas as pd
 
-def split_dataset(dataset, calval_size=0.2, random_state=None):
-    """split data into train and calibration+validation
+def split_dataset(dataset, cal_size=0.2, random_state=None):
+    """split data into train and calibration
 
     Args:
         dataset: a dictionary containing train and test dataframes and their scaler. 
-        calval_size (float, optional):  the proportion of the dataset to include in the test split. Defaults to 0.2.
+        cal_size (float, optional):  the proportion of the dataset to include in the test split. Defaults to 0.2.
 
     Returns:
-        a dictionary containing train, calval, and test dfs. 
+        a dictionary containing train, cal, and test dfs. 
     """
     train_df = dataset["train"]
     test_df = dataset["test"]
 
-    train_idx, calval_idx = split_by_group(X=train_df, groups=train_df["id"], n_splits=1, test_size=calval_size, random_state=random_state)
-    train_df , calval_df = train_df.loc[train_idx], train_df.loc[calval_idx]
+    train_idx, cal_idx = split_by_group(X=train_df, groups=train_df["id"], n_splits=1, test_size=cal_size, random_state=random_state)
+    train_df , cal_df = train_df.loc[train_idx], train_df.loc[cal_idx]
 
     return {
         "train": train_df,
-        "calval": calval_df,
+        "cal": cal_df,
         "test": test_df
     }
 
@@ -44,35 +44,34 @@ def split_by_group(X, groups, n_splits=1, test_size=0.2, random_state=None):
 
 def preprocess_split(
     split, scaler_factory, window_size,
-    removable_cols: list[str] = [], 
-    ignore_columns: list[str] = []):
-    """preprocess a train, calval, and test split: first scale them, then convert them to supervise data
+    removable_cols=[], ignore_columns=[]):
+    """preprocess a train, cal, and test split: first scale them, then convert them to supervise data
 
     Args:
-        split : a dictionary containing train, calval, and test splits.
+        split : a dictionary containing train, cal, and test splits.
         scaler_factory (_type_): scaler to be used for scaling
         removable_cols (list[str], optional): list of sensors to be removed. Defaults to [].
         ignore_columns (list[str], optional): list of data columns such as "time" and "id" to be ignored. Defaults to [].
 
     Returns:
-        a dictionary containing scaled train, calval, test dfs.
+        a dictionary containing scaled train, cal, test dfs.
     """
     split_scaler = scaler_factory
     train = apply_scaling_fn(split_scaler.fit_transform, split["train"])
-    calval = apply_scaling_fn(split_scaler.transform, split["calval"])
+    cal = apply_scaling_fn(split_scaler.transform, split["cal"])
     test = apply_scaling_fn(split_scaler.transform, split["test"])
     # removable_cols = list(train.columns[train.std(ddof=1) < 0.1e-10])
     removable_cols += ignore_columns
     train = train.drop(removable_cols, axis=1)
-    calval = calval.drop(removable_cols, axis=1)
+    cal = cal.drop(removable_cols, axis=1)
     test = test.drop(removable_cols, axis=1)
     train = dataframe_to_supervised(train, n_in=window_size-1, n_out=1)
-    calval = dataframe_to_supervised(calval, n_in=window_size-1, n_out=1)
+    cal = dataframe_to_supervised(cal, n_in=window_size-1, n_out=1)
     test = dataframe_to_supervised(test, n_in=window_size-1, n_out=1)
 
     return {
         "train": train,
-        "calval" : calval,
+        "cal" : cal,
         "test": test
     }
 
@@ -115,8 +114,6 @@ def dataframe_to_supervised(
         X = id_df_supervised.astype(np.float32).values
         X_list.append(X.reshape(X.shape[0], n_in+1, X.shape[1]//(n_in+1), 1)) # shape:(id_df.shape[0]-window_length+1, window_length, features)
         rul = id_df["rul"].astype(np.float32).values.reshape(-1,1)
-        #piecewise RUL definition, comment it if you want linear RUL
-        rul[rul>125] = 125
         y_list.append(rul[n_in:])
         id_list = id_list + X.shape[0]*[id]
         idx_list.append(np.arange(X.shape[0])) 
