@@ -1,7 +1,7 @@
 # conformal-RUL-intervals
 
-This repository contains the code for the paper: ["Conformal Prediction Intervals for Remaining Useful Lifetime
-Estimation"](https://arxiv.org/pdf/2212.14612.pdf),
+This repository contains the code for the paper: [Conformal Prediction Intervals for Remaining Useful Lifetime
+Estimation](https://arxiv.org/pdf/2212.14612.pdf),
 written by Alireza Javanmardi and Eyke Hüllermeier.
 This paper is going to appear in International Journal of Prognostics and Health Management (IJPHM) 2023.
 
