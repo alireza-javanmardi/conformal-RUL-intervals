@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.cluster import KMeans
+from sklearn.base import clone 
 
 class KMeansScaler:
     """A scaler that scale data based on the cluster they belong to 
@@ -13,7 +14,7 @@ class KMeansScaler:
         self.scalers = []
 
         for _ in range(k):
-            self.scalers.append(base_scaler)
+            self.scalers.append(clone(base_scaler))
 
     def fit(self, df: pd.DataFrame):
         kmeans = KMeans(n_clusters=self.k, random_state=0)

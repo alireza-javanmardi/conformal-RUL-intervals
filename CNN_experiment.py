@@ -1,7 +1,6 @@
 import os
 import sys
 import pickle
-import joblib
 import tensorflow as tf
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
@@ -38,12 +37,15 @@ tf.config.experimental.enable_op_determinism()
 removable_cols = ["sm01", "sm05", "sm06", "sm10", "sm16", "sm18", "sm19"]
 ignore_columns = ["time", "os1", "os2", "os3"]
 
-if dataset_name=="CMAPSS2":
-    epochs = 100 #training epochs for both DCNN and MQDCNN 
-    epoch_th = 75 #after this threshold, the learning rate changes
-else:
-    epochs = 250 
-    epoch_th = 200
+epochs = 250 #training epochs for both DCNN and MQDCNN 
+epoch_th = 200 #after this threshold, the learning rate changes
+
+# if dataset_name=="CMAPSS2":
+#     epochs = 100 
+#     epoch_th = 75 
+# else:
+#     epochs = 250 
+#     epoch_th = 200
 
 def scheduler(epoch, lr):
   if epoch <=epoch_th:
@@ -122,49 +124,34 @@ scores = np.abs(y_cal - y_hat_cal)
 scores_normalized = scores/sigma_cal
 
  
-left_cvg_len_dic = {}
-for i in range(len(alpha_array)):
-    alpha = alpha_array[i]
+intervals_dic = {}
+for a, alpha in enumerate(alpha_array):
     q = h.compute_quantile(scores, alpha)
     q_array = h.compute_quantiles_nex(rho, scores, idx_test, idx_cal, alpha)
     q_normalized = h.compute_quantile(scores_normalized, alpha)
     q_array_normalized = h.compute_quantiles_nex(rho, scores_normalized, idx_test, idx_cal, alpha)
 
-    scores_low = y_hat_cal_CQR[i] - y_cal
-    scores_high = y_cal - y_hat_cal_CQR[i+len(alpha_array)+1] 
+    scores_low = y_hat_cal_CQR[a] - y_cal
+    scores_high = y_cal - y_hat_cal_CQR[a+len(alpha_array)+1] 
     scores_CQR = np.maximum(scores_low, scores_high)
     q_CQR = h.compute_quantile(scores_CQR, alpha)
 
-    intervals_dic = {
+    intervals_dic_alpha = {
         "SCP": (np.maximum(0,y_hat_test - q), y_hat_test + q),
         "nex-SCP": (np.maximum(0, y_hat_test  - q_array), y_hat_test  + q_array),
-        "adaptive SCP": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
-        "adaptive nex-SCP": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
-        "CQR": (np.maximum(0, y_hat_test_CQR[i] - q_CQR), y_hat_test_CQR[i+len(alpha_array)+1] + q_CQR)
+        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
+        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
+        "CQR": (np.maximum(0, y_hat_test_CQR[a] - q_CQR), y_hat_test_CQR[a+len(alpha_array)+1] + q_CQR)
         }
+    intervals_dic[alpha] = intervals_dic_alpha
 
-    colors_dic = {
-        "SCP": "blue",
-        "nex-SCP": "red",
-        "adaptive SCP": "darkblue",
-        "adaptive nex-SCP": "darkred",
-        "CQR": "green"
-        }    
-    single_points_dic = {
-        "SCP": y_hat_test,
-        "nex-SCP": y_hat_test,
-        "adaptive SCP": y_hat_test,
-        "adaptive nex-SCP": y_hat_test,
-        "CQR": y_hat_test_CQR[len(alpha_array)]
-        } 
-    os.makedirs(os.path.join("result_figs", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "alpha_"+str(alpha)), exist_ok=True)
-    LCL_alpha_dic = {}    
-    for k in intervals_dic.keys():
-        h.plot_sorted_targets_intervals(intervals_dic[k], single_points_dic[k], y_test, colors_dic[k], k+" intervals")
-        plt.savefig(os.path.join("result_figs", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "alpha_"+str(alpha), k+'.pdf'), format='pdf', bbox_inches='tight', pad_inches=0)
-        LCL_alpha_dic[k] = h.compute_coverage_len(y_test, intervals_dic[k][0], intervals_dic[k][1])
 
-    left_cvg_len_dic[alpha] = LCL_alpha_dic
-os.makedirs(os.path.join("result_cvgs", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
-with open(os.path.join("result_cvgs", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "left_cvg_len_dic.pkl"), 'wb') as f:
-    pickle.dump(left_cvg_len_dic, f)
+results_dic = {
+    "Ground truth RULs": y_test,
+    "Single-point RUL predictions": y_hat_test,
+    "Single-point RUL predictions CQR": y_hat_test_CQR[len(alpha_array)],
+    "intervals": intervals_dic
+    }    
+os.makedirs(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
+with open(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "results.pkl"), 'wb') as f:
+    pickle.dump(results_dic, f)

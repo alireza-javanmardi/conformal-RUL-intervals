@@ -2,11 +2,10 @@ import os
 import sys
 import pickle 
 import random
-from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor 
-from sklearn.metrics import mean_pinball_loss, mean_squared_error, mean_absolute_error
+from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor 
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-import matplotlib.pyplot as plt
 
 import src.data.preprocessor as pre
 import src.data.datasets as data
@@ -91,9 +90,8 @@ scores = np.abs(y_cal - y_hat_cal)
 scores_normalized = scores/sigma_cal
 
  
-left_cvg_len_dic = {}
-for i in range(len(alpha_array)):
-    alpha = alpha_array[i]
+intervals_dic = {}
+for alpha in alpha_array:
     q = h.compute_quantile(scores, alpha)
     q_array = h.compute_quantiles_nex(rho, scores.reshape((-1,1)), idx_test, idx_cal, alpha).reshape(-1)
     q_normalized = h.compute_quantile(scores_normalized, alpha)
@@ -104,36 +102,21 @@ for i in range(len(alpha_array)):
     scores_CQR = np.maximum(scores_low, scores_high)
     q_CQR = h.compute_quantile(scores_CQR, alpha)
 
-    intervals_dic = {
+    intervals_dic_alpha = {
         "SCP": (np.maximum(0,y_hat_test - q), y_hat_test + q),
         "nex-SCP": (np.maximum(0, y_hat_test  - q_array), y_hat_test  + q_array),
-        "adaptive SCP": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
-        "adaptive nex-SCP": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
+        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
+        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
         "CQR": (np.maximum(0, y_hat_test_CQR["q %1.2f" % alpha] - q_CQR), y_hat_test_CQR["q %1.2f" % (1-alpha)] + q_CQR)
         }
+    intervals_dic[alpha] = intervals_dic_alpha
 
-    colors_dic = {
-        "SCP": "blue",
-        "nex-SCP": "red",
-        "adaptive SCP": "darkblue",
-        "adaptive nex-SCP": "darkred",
-        "CQR": "green"
-        }    
-    single_points_dic = {
-        "SCP": y_hat_test,
-        "nex-SCP": y_hat_test,
-        "adaptive SCP": y_hat_test,
-        "adaptive nex-SCP": y_hat_test,
-        "CQR": y_hat_test_CQR["q %1.2f" % 0.5]
-        } 
-    os.makedirs(os.path.join("result_figs_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "alpha_"+str(alpha)), exist_ok=True)
-    LCL_alpha_dic = {}    
-    for k in intervals_dic.keys():
-        h.plot_sorted_targets_intervals(intervals_dic[k], single_points_dic[k], y_test, colors_dic[k], k+" intervals")
-        plt.savefig(os.path.join("result_figs_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "alpha_"+str(alpha), k+'.pdf'), format='pdf', bbox_inches='tight', pad_inches=0)
-        LCL_alpha_dic[k] = h.compute_coverage_len(y_test, intervals_dic[k][0], intervals_dic[k][1])
-
-    left_cvg_len_dic[alpha] = LCL_alpha_dic
-os.makedirs(os.path.join("result_cvgs_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
-with open(os.path.join("result_cvgs_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "left_cvg_len_dic.pkl"), 'wb') as f:
-    pickle.dump(left_cvg_len_dic, f)
+results_dic = {
+    "Ground truth RULs": y_test,
+    "Single-point RUL predictions": y_hat_test,
+    "Single-point RUL predictions CQR": y_hat_test_CQR["q %1.2f" % 0.5],
+    "intervals": intervals_dic
+    }    
+os.makedirs(os.path.join("results_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
+with open(os.path.join("results_GB", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "results.pkl"), 'wb') as f:
+    pickle.dump(results_dic, f)

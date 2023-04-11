@@ -136,9 +136,9 @@ def plot_sorted_targets_intervals(intervals, single_point_predictions, y, color,
     plt.rcParams["font.size"] = 25
     plt.fill_between(range(len(sorted_y)), sorted_lower, sorted_upper, color=color, alpha=0.2, label=label)
     plt.plot(range(len(sorted_y)), sorted_y, 'ok', label="Ground truth RULs", alpha=0.6)
-    plt.plot(range(len(sorted_y)), single_point_predictions[sorted_y_idx], '--k', label="predicted RULs", alpha=0.6)
+    plt.plot(range(len(sorted_y)), single_point_predictions[sorted_y_idx], '--k', label="Single-point RUL predictions", alpha=0.6)
     plt.ylim([0,180])
-    plt.xlabel('Test units with increasing RUL')
+    plt.xlabel('Test instances with increasing RUL')
     plt.legend(loc='upper left')
             
 def plot_train_history(hist_dic):

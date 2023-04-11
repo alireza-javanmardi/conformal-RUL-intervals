@@ -14,6 +14,7 @@ run_garden.sh
 run_GB.sh
 run_meta.sh
 run_meta_GB.sh
+run_meta_temp.sh
 run.sh
 run_RF.bat
 test.ipynb
@@ -25,6 +26,19 @@ test3.ipynb
 violinplots_GB.py
 violinplots_RF.py
 violinplots.py
+nonstationary.ipynb
+plots_GB.py 
+plots_CNN.py 
+results_GB
+results_CNN
+functionalMLP.ipynb
+my_dir
+my_dir_new
+MERF.ipynb
+poster.ipynb
+poster.pdf
+conformal predictive system.ipynb
+
 
 
 
