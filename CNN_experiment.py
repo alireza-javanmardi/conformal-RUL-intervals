@@ -137,11 +137,11 @@ for a, alpha in enumerate(alpha_array):
     q_CQR = h.compute_quantile(scores_CQR, alpha)
 
     intervals_dic_alpha = {
-        "SCP": (np.maximum(0,y_hat_test - q), y_hat_test + q),
-        "nex-SCP": (np.maximum(0, y_hat_test  - q_array), y_hat_test  + q_array),
-        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
-        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
-        "CQR": (np.maximum(0, y_hat_test_CQR[a] - q_CQR), y_hat_test_CQR[a+len(alpha_array)+1] + q_CQR)
+        "SCP": (np.maximum(0,y_hat_test - q), np.minimum(125, y_hat_test + q)),
+        "nex-SCP": (np.maximum(0, y_hat_test  - q_array), np.minimum(125, y_hat_test  + q_array)),
+        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), np.minimum(125, y_hat_test + q_normalized*sigma_test)),
+        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), np.minimum(125, y_hat_test  + q_array_normalized*sigma_test)),
+        "CQR": (np.maximum(0, y_hat_test_CQR[a] - q_CQR), np.minimum(125, y_hat_test_CQR[a+len(alpha_array)+1] + q_CQR))
         }
     intervals_dic[alpha] = intervals_dic_alpha
 
@@ -155,3 +155,6 @@ results_dic = {
 os.makedirs(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
 with open(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "results.pkl"), 'wb') as f:
     pickle.dump(results_dic, f)
+
+
+np.minimum

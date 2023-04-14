@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 def compute_coverage_len(y, y_lower, y_upper):
     """Compute average coverage and length of prediction intervals
@@ -137,9 +138,10 @@ def plot_sorted_targets_intervals(intervals, single_point_predictions, y, color,
     plt.fill_between(range(len(sorted_y)), sorted_lower, sorted_upper, color=color, alpha=0.2, label=label)
     plt.plot(range(len(sorted_y)), sorted_y, 'ok', label="Ground truth RULs", alpha=0.6)
     plt.plot(range(len(sorted_y)), single_point_predictions[sorted_y_idx], '--k', label="Single-point RUL predictions", alpha=0.6)
-    plt.ylim([0,180])
+    plt.ylim([0,140])
     plt.xlabel('Test instances with increasing RUL')
-    plt.legend(loc='upper left')
+    plt.ylabel('RUL')
+    # plt.legend(loc='lower right')
             
 def plot_train_history(hist_dic):
     """plot the hsitory of training 
@@ -160,4 +162,61 @@ def plot_train_history(hist_dic):
     plt.legend(loc='upper right')
     
 
+def violinplot_cvg_len_data(cvg_data, len_data, alphas, methods):
+    """violin plots of the coverage and lengths in one figure
 
+    Args:
+        cvg_data(np.array): coverage matrix where rows represents the seeds, each len(alphas) columns belong to a CP method (shape: (len(seeds), len(alphas)*len(methods)))
+        len_data(np.array): length matrix where rows represents the seeds, each len(alphas) columns belong to a CP method (shape: (len(seeds), len(alphas)*len(methods)))
+        alphas(list): list of alphas
+        methods(list): list of CP methods
+    """
+
+    labels = [] #labels for legend
+    plt.rcParams["font.family"] = "Times New Roman"
+    plt.rcParams["font.size"] = 25
+    fig, ax1 = plt.subplots(figsize=(40, 10))
+    ax1.set_ylabel('Average Coverage')
+    violin_parts1 = ax1.violinplot(cvg_data, showmeans=True)
+    violinplot_set_color(violin_parts1, 'tab:blue')
+
+    ax1.set_xticks(np.arange(1, len(alphas)*len(methods)+1), labels=alphas*len(methods))
+    ax1.set_xlim(0.25, len(alphas)*len(methods) + 0.75)
+    ax1.set_xlabel(r'Miscoverage rate ($\alpha$)')
+
+    #vertical lines for separating methods from each other
+    for i in range(len(methods)-1):
+        ax1.axvline(x=len(alphas)*(i+1)+ 0.5, color='k')
+    
+    #Horizontal lines for nominal coverage 
+    for a in alphas:
+        ax1.axhline(y=1-a, color='k', linestyle=":")
+    ax1.set_ylim([0,1])
+    labels.append((mpatches.Patch(color=violin_parts1['bodies'][0].get_facecolor()), 'Average Coverage'))
+
+
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    ax2.set_ylabel('Average Width')  
+    violin_parts2 = ax2.violinplot(len_data, showmeans=True)
+    violinplot_set_color(violin_parts2, 'r')
+    ax2.set_ylim([10,100])
+    secax = ax1.secondary_xaxis('top')
+    secax.set_xticks(np.arange((len(alphas)+1)/2, len(alphas)*len(methods), len(alphas)), labels=methods)
+    labels.append((mpatches.Patch(color=violin_parts2['bodies'][0].get_facecolor()), 'Average Width'))
+    plt.legend(*zip(*labels), loc="lower left")
+    
+def violinplot_set_color(violin_parts, color):
+    """set the color of the violin plot
+
+    Args:
+        violin_parts: return values of the violinplot
+        color (str): the color
+    """
+    for pc in violin_parts['bodies']:
+        pc.set_color(color)
+        pc.set_alpha(0.3)
+    violin_parts['cbars'].set_color('k')
+    violin_parts['cmaxes'].set_color('k')
+    violin_parts['cmins'].set_color('k')
+    violin_parts['cmeans'].set_color('k')

@@ -103,11 +103,11 @@ for alpha in alpha_array:
     q_CQR = h.compute_quantile(scores_CQR, alpha)
 
     intervals_dic_alpha = {
-        "SCP": (np.maximum(0,y_hat_test - q), y_hat_test + q),
-        "nex-SCP": (np.maximum(0, y_hat_test  - q_array), y_hat_test  + q_array),
-        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), y_hat_test + q_normalized*sigma_test),
-        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), y_hat_test  + q_array_normalized*sigma_test),
-        "CQR": (np.maximum(0, y_hat_test_CQR["q %1.2f" % alpha] - q_CQR), y_hat_test_CQR["q %1.2f" % (1-alpha)] + q_CQR)
+        "SCP": (np.maximum(0,y_hat_test - q), np.minimum(125, y_hat_test + q)),
+        "nex-SCP": (np.maximum(0, y_hat_test  - q_array), np.minimum(125, y_hat_test  + q_array)),
+        "SCP+NNM": (np.maximum(0,y_hat_test - q_normalized*sigma_test), np.minimum(125, y_hat_test + q_normalized*sigma_test)),
+        "nex-SCP+NNM": (np.maximum(0, y_hat_test  - q_array_normalized*sigma_test), np.minimum(125, y_hat_test  + q_array_normalized*sigma_test)),
+        "CQR": (np.maximum(0, y_hat_test_CQR["q %1.2f" % alpha] - q_CQR), np.minimum(125, y_hat_test_CQR["q %1.2f" % (1-alpha)] + q_CQR))
         }
     intervals_dic[alpha] = intervals_dic_alpha
 
