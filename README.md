@@ -12,3 +12,6 @@ As the paper's title suggests, we are interested in estimating remaining useful 
 we say
 
 **The system will fail between $3$ and $6$ cycles (or days, weeks, etc.)**.
+
+To be able to use the code, for instance, for dataset FD001 in CMAPSS with 0.1 being the portion of data used for calibration and random seed being set to 10, one can simply run the following code:
+`python CNN_experiment.py CMAPSS1 0.1 10`
