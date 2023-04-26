@@ -18,7 +18,6 @@ the output will present a range of potential failure times, such as
 Here is the general procedure of how to construct conformal prediction intervals using any arbitrary single-point RUL estimator:
 
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
-
 ## Setup
 1. Clone the repository
 2. Create a new virtual environment and install the requirements:
