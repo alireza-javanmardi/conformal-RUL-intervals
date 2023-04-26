@@ -19,7 +19,7 @@ Here is the general prodecure of how to construct conformal prediction intervals
 
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
 
-## Installation
+## Setup
 1. Clone the repository
 2. Create a new virtual environment and isntall the requirements:
 ```shell
