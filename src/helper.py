@@ -138,7 +138,7 @@ def plot_sorted_targets_intervals(intervals, single_point_predictions, y, color,
     plt.fill_between(range(len(sorted_y)), sorted_lower, sorted_upper, color=color, alpha=0.2, label=label)
     plt.plot(range(len(sorted_y)), sorted_y, 'ok', label="Ground truth RULs", alpha=0.6)
     plt.plot(range(len(sorted_y)), single_point_predictions[sorted_y_idx], '--k', label="Single-point RUL predictions", alpha=0.6)
-    plt.ylim([0,140])
+    plt.ylim([0,130])
     plt.xlabel('Test instances with increasing RUL')
     plt.ylabel('RUL')
     # plt.legend(loc='lower right')
