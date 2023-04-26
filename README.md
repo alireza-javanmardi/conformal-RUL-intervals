@@ -9,6 +9,7 @@ This paper is going to appear in the International Journal of Prognostics and He
 
 
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
+
 As the paper's title suggests, we are interested in estimating remaining useful lifetime (RUL) of a system. However, instead of providing single-point estimations, we provide intervals as output. In other words, instead of saying 
 
 **The system will fail in $5$ cycles (or days, weeks, etc.)**, 
