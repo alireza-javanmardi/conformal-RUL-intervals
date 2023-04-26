@@ -15,6 +15,8 @@ we say
 
 **The system will fail between $3$ and $6$ cycles (or days, weeks, etc.)**.
 
+Here is the general prodecure of how to construct conformal prediction intervals using any arbitrary single-point RUL estimator: 
+
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
 
 ## Installation
