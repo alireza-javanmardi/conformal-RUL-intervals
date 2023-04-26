@@ -7,13 +7,13 @@ Estimation](https://arxiv.org/pdf/2212.14612.pdf),
 written by Alireza Javanmardi and Eyke Hüllermeier.
 This paper is going to appear in the International Journal of Prognostics and Health Management (IJPHM) 2023.
 
-As the paper's title suggests, we are interested in estimating remaining useful lifetime (RUL) of a system. However, instead of providing single-point estimations, we provide intervals as output. In other words, instead of saying 
+As the paper's title suggests, we are interested in estimating the remaining useful lifetime (RUL) of a system. However, rather than providing a specific point in time for system failure, such as 
 
-**The system will fail in $5$ cycles (or days, weeks, etc.)**, 
+**"The system will fail in $5$ cycles (or days, weeks, etc.)"**,
 
-we say
+the output will present a range of potential failure times, such as 
 
-**The system will fail between $3$ and $6$ cycles (or days, weeks, etc.)**.
+**"The system will fail between $3$ and $6$ cycles (or days, weeks, etc.)"**.
 
 Here is the general prodecure of how to construct conformal prediction intervals using any arbitrary single-point RUL estimator: 
 
