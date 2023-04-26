@@ -9,7 +9,7 @@ This paper is going to appear in the International Journal of Prognostics and He
 
 As the paper's title suggests, we are interested in estimating the remaining useful lifetime (RUL) of a system. However, rather than providing a specific point in time for system failure, such as 
 
-**"The system will fail in $5$ cycles (or days, weeks, etc.)"**
+**"The system will fail in $5$ cycles (or days, weeks, etc.)"**,
 
 the output will present a range of potential failure times, such as 
 
