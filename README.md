@@ -29,7 +29,7 @@ Here is the general prodecure of how to construct conformal prediction intervals
   ```shell
  python CNN_experiment.py CMAPSS1 0.1 10
  ```
-This will run the code for CMAPSS dataset FD001 using CNN as an underlying regression model with a calibration portion of 0.1 and a random seed of 10.
+This line of code will perform an experiment on the CMAPSS dataset FD001 using a deep convolutional neural network as the single-point RUL estimator. 0.1 of the training data will be put aside for calibration and the random seed will be set to 10. 
 
 ## Citing
 
