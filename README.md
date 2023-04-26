@@ -1,6 +1,7 @@
 # Conformal Prediction Intervals for Remaining Useful Lifetime Estimation
 
 [![arXiv](https://img.shields.io/badge/arXiv-2302.12238-b31b1b.svg)](https://arxiv.org/abs/2212.14612)
+
 This repository contains the code for the paper: [Conformal Prediction Intervals for Remaining Useful Lifetime
 Estimation](https://arxiv.org/pdf/2212.14612.pdf),
 written by Alireza Javanmardi and Eyke Hüllermeier.
