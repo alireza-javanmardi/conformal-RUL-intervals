@@ -19,7 +19,7 @@ Here is the general prodecure of how to construct conformal prediction intervals
 
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
 
-## Installation
+## Setup
 1. Clone the repository
 2. Create a new virtual environment and isntall the requirements:
 ```shell
@@ -27,9 +27,9 @@ Here is the general prodecure of how to construct conformal prediction intervals
 ```
 3. Activate the virtual environment and run:
   ```shell
- python CNN_experiment.py CMAPSS1 0.1 10
+ python CNN_experiment.py CMAPSS1 0.1 22
  ```
-This line of code will perform an experiment on the CMAPSS dataset FD001 using a deep convolutional neural network as the single-point RUL estimator. 10% of the training data will be put aside for calibration and the random seed will be set to 10. 
+This line of code will perform an experiment on the CMAPSS dataset FD001 using a deep convolutional neural network as the single-point RUL estimator. 10% of the training data will be put aside for calibration and the random seed will be set to 22. 
 
 ## Citation
 
