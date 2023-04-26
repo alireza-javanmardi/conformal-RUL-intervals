@@ -1,4 +1,4 @@
-# conformal-RUL-intervals
+# Conformal Prediction Intervals for Remaining Useful Lifetime Estimation
 
 This repository contains the code for the paper: [Conformal Prediction Intervals for Remaining Useful Lifetime
 Estimation](https://arxiv.org/pdf/2212.14612.pdf),
