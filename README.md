@@ -15,13 +15,12 @@ the output will present a range of potential failure times, such as
 
 **"The system will fail between $3$ and $6$ cycles (or days, weeks, etc.)"**.
 
-Here is the general prodecure of how to construct conformal prediction intervals using any arbitrary single-point RUL estimator: 
+Here is the general procedure of how to construct conformal prediction intervals using any arbitrary single-point RUL estimator:
 
 ![image](conformal-prediction.png "general procedure of CP for RUL estimation")
-
 ## Setup
 1. Clone the repository
-2. Create a new virtual environment and isntall the requirements:
+2. Create a new virtual environment and install the requirements:
 ```shell
  pip install -r requirements.txt
 ```
@@ -29,7 +28,7 @@ Here is the general prodecure of how to construct conformal prediction intervals
   ```shell
  python CNN_experiment.py CMAPSS1 0.1 22
  ```
-This line of code will perform an experiment on the CMAPSS dataset FD001 using a deep convolutional neural network as the single-point RUL estimator. 10% of the training data will be put aside for calibration and the random seed will be set to 22. 
+This line of code will perform an experiment on the CMAPSS dataset FD001 using a deep convolutional neural network as the single-point RUL estimator. 10% of the training data will be put aside for calibration, and the random seed will be set to 22. 
 
 ## Citation
 
