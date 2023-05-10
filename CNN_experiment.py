@@ -155,6 +155,3 @@ results_dic = {
 os.makedirs(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str), exist_ok=True)      
 with open(os.path.join("results_CNN", dataset_name, "cal_portion_"+cal_portion_str, "seed_"+exp_seed_str, "results.pkl"), 'wb') as f:
     pickle.dump(results_dic, f)
-
-
-np.minimum

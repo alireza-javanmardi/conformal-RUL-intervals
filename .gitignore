@@ -7,10 +7,7 @@ run_meta.sh
 run_GB.sh
 run_meta_GB.sh
 
-plot.py
 joint_plot.py
-
-RUL_buckets_results.py
 
 
 
