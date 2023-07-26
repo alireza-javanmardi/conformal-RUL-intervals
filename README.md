@@ -3,7 +3,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2302.12238-b31b1b.svg)](https://arxiv.org/abs/2212.14612)
 
 This repository contains the code for the paper: [Conformal Prediction Intervals for Remaining Useful Lifetime
-Estimation](https://arxiv.org/pdf/2212.14612.pdf),
+Estimation](https://doi.org/10.36001%2Fijphm.2023.v14i2.3417),
 written by Alireza Javanmardi and Eyke Hüllermeier.
 This paper is going to appear in the International Journal of Prognostics and Health Management (IJPHM) 2023.
 
@@ -35,13 +35,16 @@ This line of code will perform an experiment on the CMAPSS dataset FD001 using a
 If you use this code, please cite our paper:
 
 ```
-@misc{javanmardi2022conformal,
-      title={Conformal Prediction Intervals for Remaining Useful Lifetime Estimation}, 
-      author={Alireza Javanmardi and Eyke Hüllermeier},
-      year={2022},
-      eprint={2212.14612},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG}
+@article{javanmardi2023conformal,
+      title = {Conformal Prediction Intervals for Remaining Useful Lifetime Estimation}, 
+      author = {Alireza Javanmardi and Eyke Hüllermeier},
+      journal = {International Journal of Prognostics and Health Management}
+      publisher = {{PHM} Society},
+      year = {2023},
+      volume = {14},
+      number = {2},
+      doi = {10.36001/ijphm.2023.v14i2.3417},
+      url = {https://doi.org/10.36001%2Fijphm.2023.v14i2.3417}
 }
 
 ```
