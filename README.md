@@ -5,7 +5,7 @@
 This repository contains the code for the paper: [Conformal Prediction Intervals for Remaining Useful Lifetime
 Estimation](https://doi.org/10.36001%2Fijphm.2023.v14i2.3417),
 written by Alireza Javanmardi and Eyke Hüllermeier.
-This paper is going to appear in the International Journal of Prognostics and Health Management (IJPHM) 2023.
+This paper is published in the International Journal of Prognostics and Health Management (IJPHM) 2023.
 
 As the paper's title suggests, we are interested in estimating the remaining useful lifetime (RUL) of a system. However, rather than providing a specific point in time for system failure, such as 
 
